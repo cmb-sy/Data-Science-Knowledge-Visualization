@@ -13,6 +13,7 @@ class DistributionType(str, Enum):
 
     UNIFORM = "uniform"
     EXPONENTIAL = "exponential"
+    LINEAR_REGRESSION = "linear_regression"
     # 将来的に追加予定: NORMAL, BINOMIAL, etc.
 
 
@@ -133,30 +134,59 @@ class DistributionData(BaseModel):
     x_values: List[float] = Field(
         ..., min_length=10, max_length=10000, description="X軸の値"
     )
-    pdf_values: List[float] = Field(
-        ..., min_length=10, max_length=10000, description="確率密度関数の値"
+    # 確率分布用
+    pdf_values: Optional[List[float]] = Field(
+        None, min_length=10, max_length=10000, description="確率密度関数の値"
     )
-    cdf_values: List[float] = Field(
-        ..., min_length=10, max_length=10000, description="累積分布関数の値"
+    cdf_values: Optional[List[float]] = Field(
+        None, min_length=10, max_length=10000, description="累積分布関数の値"
     )
-    mean: float = Field(..., description="平均")
-    variance: float = Field(..., ge=0, description="分散（0以上）")
-    std_dev: float = Field(..., ge=0, description="標準偏差（0以上）")
+    # 回帰分析用
+    y_true: Optional[List[float]] = Field(
+        None, min_length=10, max_length=10000, description="真の値（生成元の関数）"
+    )
+    y_observed: Optional[List[float]] = Field(
+        None, min_length=10, max_length=10000, description="観測値（散布図用）"
+    )
+    y_fitted: Optional[List[float]] = Field(
+        None, min_length=10, max_length=10000, description="予測値（回帰直線用）"
+    )
+    
+    # 回帰分析の評価指標
+    r_squared: Optional[float] = Field(None, description="決定係数 (R^2)")
+    slope_estimated: Optional[float] = Field(None, description="推定された傾き")
+    intercept_estimated: Optional[float] = Field(None, description="推定された切片")
+    rmse: Optional[float] = Field(None, description="二乗平均平方根誤差 (RMSE)")
+
+    mean: float = Field(..., description="平均（回帰の場合はYの平均）")
+    variance: float = Field(..., ge=0, description="分散（回帰の場合はYの分散）")
+    std_dev: float = Field(..., ge=0, description="標準偏差（回帰の場合はYの標準偏差）")
 
     @model_validator(mode="after")
-    def validate_array_lengths(self) -> "DistributionData":
-        """全ての配列の長さが一致することを検証"""
-        lengths = [len(self.x_values), len(self.pdf_values), len(self.cdf_values)]
-        if len(set(lengths)) != 1:
-            raise ValueError(
-                f"x_values, pdf_values, cdf_values の長さが一致しません: {lengths}"
-            )
+    def validate_data_consistency(self) -> "DistributionData":
+        """データの整合性を検証"""
+        # 確率分布の場合
+        if self.pdf_values is not None and self.cdf_values is not None:
+            lengths = [len(self.x_values), len(self.pdf_values), len(self.cdf_values)]
+            if len(set(lengths)) != 1:
+                raise ValueError(
+                    f"x_values, pdf_values, cdf_values の長さが一致しません: {lengths}"
+                )
+        
+        # 回帰分析の場合
+        if self.y_observed is not None and self.y_fitted is not None:
+            lengths = [len(self.x_values), len(self.y_observed), len(self.y_fitted)]
+            if len(set(lengths)) != 1:
+                raise ValueError(
+                    f"x_values, y_observed, y_fitted の長さが一致しません: {lengths}"
+                )
+                
         return self
 
-    @field_validator("pdf_values", "cdf_values")
+    @field_validator("pdf_values", "cdf_values", "y_observed", "y_fitted", "y_true")
     @classmethod
-    def validate_no_nan_inf(cls, v: List[float]) -> List[float]:
+    def validate_no_nan_inf(cls, v: Optional[List[float]]) -> Optional[List[float]]:
         """NaNやInfが含まれていないことを検証"""
-        if any(np.isnan(val) or np.isinf(val) for val in v):
+        if v is not None and any(np.isnan(val) or np.isinf(val) for val in v):
             raise ValueError("NaNまたはInfが含まれています")
         return v

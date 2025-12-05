@@ -4,12 +4,13 @@
  */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import type {
   DistributionInfo,
   DistributionData,
   DistributionType,
+  DistributionParameter,
 } from "@/types/distribution";
 import { getDistributionInfo, calculateDistribution } from "@/lib/api";
 import ParameterSlider from "@/components/ParameterSlider";
@@ -23,6 +24,17 @@ type PageProps = {
   params: { dist: string };
 };
 
+// データ数設定用のパラメータ定義
+const NUM_POINTS_PARAM: DistributionParameter = {
+  name: "num_points",
+  label: "データ数 (N)",
+  description: "生成するデータのサンプル数",
+  default_value: 100,
+  min_value: 10,
+  max_value: 1000,
+  step: 10,
+};
+
 export default function DistributionPage({ params }: PageProps) {
   const distType = (params.dist as DistributionType) ?? "uniform";
 
@@ -30,10 +42,16 @@ export default function DistributionPage({ params }: PageProps) {
     null
   );
   const [parameters, setParameters] = useState<Record<string, number>>({});
+  const [numPoints, setNumPoints] = useState<number>(
+    NUM_POINTS_PARAM.default_value
+  );
   const [distributionData, setDistributionData] =
     useState<DistributionData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // APIリクエストの重複を防ぐためのRef
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // 分布情報の取得
   useEffect(() => {
@@ -47,6 +65,13 @@ export default function DistributionPage({ params }: PageProps) {
           defaultParams[param.name] = param.default_value;
         });
         setParameters(defaultParams);
+
+        // データ数の初期値を調整（回帰分析の場合は少なくする等も可能だが、一旦デフォルト）
+        if (distType === "linear_regression") {
+          setNumPoints(100);
+        } else {
+          setNumPoints(1000);
+        }
       } catch (err) {
         console.error("Failed to fetch distribution info:", err);
         setError(
@@ -62,17 +87,20 @@ export default function DistributionPage({ params }: PageProps) {
   const fetchDistributionData = useCallback(async () => {
     if (!selectedInfo || Object.keys(parameters).length === 0) return;
 
-    setLoading(true);
+    // 前回のリクエストをキャンセル（必要であれば実装するが、今回は単純なフラグ管理で対応）
+    // ここではローディング表示を制御しないことで、再描画時のチラつきを抑える
+    // setLoading(true);
     setError(null);
 
     try {
       const data = await calculateDistribution({
         distribution_type: distType,
         parameters,
-        num_points: 1000,
+        num_points: numPoints,
       });
       setDistributionData(data);
     } catch (err: any) {
+      // キャンセルされたエラーは無視するなどの処理が必要な場合があるが、今回は単純化
       console.error("Failed to calculate distribution:", err);
       setError(
         err.response?.data?.detail ||
@@ -81,16 +109,21 @@ export default function DistributionPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  }, [distType, parameters, selectedInfo]);
+  }, [distType, parameters, selectedInfo, numPoints]);
 
-  // パラメータ変更時に即座に再計算
+  // パラメータ変更時に再計算（デバウンス処理）
   useEffect(() => {
+    // 初回マウント時やパラメータがまだない場合はスキップ
+    if (Object.keys(parameters).length === 0) return;
+
+    // デバウンス時間を調整 (100ms)
+    // スライダー操作への追従性を高めつつ、過度なリクエストを防ぐ
     const timeoutId = setTimeout(() => {
       fetchDistributionData();
-    }, 20);
+    }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [fetchDistributionData]);
+  }, [fetchDistributionData, parameters]);
 
   // パラメータ値変更時の処理
   const handleParameterChange = (name: string, value: number) => {
@@ -248,6 +281,17 @@ export default function DistributionPage({ params }: PageProps) {
                       パラメータ
                     </h2>
                     <div className="space-y-6">
+                      {/* データ数設定 */}
+                      <ParameterSlider
+                        parameter={NUM_POINTS_PARAM}
+                        value={numPoints}
+                        onChange={setNumPoints}
+                        // onCommit は useEffect の自動更新に任せるため指定しない
+                      />
+
+                      <div className="border-t border-gray-200" />
+
+                      {/* 分布固有パラメータ */}
                       {selectedInfo.parameters.map((param) => (
                         <ParameterSlider
                           key={param.name}
@@ -256,7 +300,7 @@ export default function DistributionPage({ params }: PageProps) {
                           onChange={(value) =>
                             handleParameterChange(param.name, value)
                           }
-                          onCommit={() => fetchDistributionData()}
+                          // onCommit は useEffect の自動更新に任せるため指定しない
                         />
                       ))}
                     </div>
@@ -267,6 +311,10 @@ export default function DistributionPage({ params }: PageProps) {
                       mean={distributionData.mean}
                       variance={distributionData.variance}
                       stdDev={distributionData.std_dev}
+                      rSquared={distributionData.r_squared}
+                      slope={distributionData.slope_estimated}
+                      intercept={distributionData.intercept_estimated}
+                      rmse={distributionData.rmse}
                     />
                   )}
                 </div>
@@ -275,32 +323,45 @@ export default function DistributionPage({ params }: PageProps) {
 
             {/* メインエリア: グラフと数式 */}
             <div className="lg:col-span-3 space-y-8">
-              {loading ? (
-                <div className="border border-gray-200 rounded-lg p-12">
-                  <LoadingSpinner message="計算中..." />
+              {/* 
+                ローディング中もグラフを表示し続ける（opacityを下げるなどしても良い）
+                計算中はローディングスピナーをオーバーレイ表示するなど
+              */}
+              <div className="relative">
+                {/* グラフ領域 */}
+                {distributionData ? (
+                  <DistributionChart data={distributionData} />
+                ) : (
+                  <div className="h-[400px] border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
+                    {loading && <LoadingSpinner message="計算中..." />}
+                  </div>
+                )}
+
+                {/* データがある場合のローディングオーバーレイ（オプション） */}
+                {distributionData && loading && (
+                  <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+                    {/* 控えめなローディング表示 */}
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+              </div>
+
+              {distributionData && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {selectedInfo?.formula_pdf && (
+                    <FormulaDisplay
+                      formula={selectedInfo.formula_pdf}
+                      label="確率密度関数 (PDF)"
+                    />
+                  )}
+
+                  {selectedInfo?.formula_cdf && (
+                    <FormulaDisplay
+                      formula={selectedInfo.formula_cdf}
+                      label="累積分布関数 (CDF)"
+                    />
+                  )}
                 </div>
-              ) : (
-                distributionData && (
-                  <>
-                    <DistributionChart data={distributionData} />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {selectedInfo?.formula_pdf && (
-                        <FormulaDisplay
-                          formula={selectedInfo.formula_pdf}
-                          label="確率密度関数 (PDF)"
-                        />
-                      )}
-
-                      {selectedInfo?.formula_cdf && (
-                        <FormulaDisplay
-                          formula={selectedInfo.formula_cdf}
-                          label="累積分布関数 (CDF)"
-                        />
-                      )}
-                    </div>
-                  </>
-                )
               )}
             </div>
           </div>

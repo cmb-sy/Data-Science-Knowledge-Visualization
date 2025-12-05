@@ -2,7 +2,7 @@
  * 確率分布関連の型定義
  */
 
-export type DistributionType = "uniform" | "exponential";
+export type DistributionType = "uniform" | "exponential" | "linear_regression";
 
 export type CategoryType =
   | "continuous" // 連続型確率分布
@@ -44,8 +44,17 @@ export interface DistributionInfo {
 
 export interface DistributionData {
   x_values: number[];
-  pdf_values: number[];
-  cdf_values: number[];
+  pdf_values?: number[];
+  cdf_values?: number[];
+  y_true?: number[];
+  y_observed?: number[];
+  y_fitted?: number[];
+  // 回帰分析の評価指標
+  r_squared?: number;
+  slope_estimated?: number;
+  intercept_estimated?: number;
+  rmse?: number;
+  
   mean: number;
   variance: number;
   std_dev: number;

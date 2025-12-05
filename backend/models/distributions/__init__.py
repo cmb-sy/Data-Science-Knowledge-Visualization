@@ -17,12 +17,14 @@ from .base import (
 # 各分布の実装をインポート
 from .uniform import UniformDistribution
 from .exponential import ExponentialDistribution
+from .linear_regression import LinearRegression
 
 
 # 分布のレジストリ
 DISTRIBUTION_REGISTRY: Dict[DistributionType, Any] = {
     DistributionType.UNIFORM: UniformDistribution,
     DistributionType.EXPONENTIAL: ExponentialDistribution,
+    DistributionType.LINEAR_REGRESSION: LinearRegression,
 }
 
 
@@ -72,6 +74,16 @@ def calculate_distribution(
             num_points=num_points,
         )
 
+    # 単回帰分析の場合
+    if dist_type == DistributionType.LINEAR_REGRESSION:
+        return dist_class.calculate(
+            slope=parameters.get("slope", 1.0),
+            intercept=parameters.get("intercept", 0.0),
+            noise_std=parameters.get("noise_std", 1.0),
+            pattern_id=parameters.get("pattern_id", 0.0),
+            num_points=num_points,
+        )
+
     raise NotImplementedError(f"Distribution {dist_type} not implemented")
 
 
@@ -86,6 +98,7 @@ __all__ = [
     # 分布実装
     "UniformDistribution",
     "ExponentialDistribution",
+    "LinearRegression",
     # レジストリと関数
     "DISTRIBUTION_REGISTRY",
     "get_available_distributions",
