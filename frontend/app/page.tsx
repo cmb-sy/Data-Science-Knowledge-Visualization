@@ -104,11 +104,8 @@ export default function Home() {
           {/* ヘッダー */}
           <header className="mb-12 text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              確率分布・機械学習モデル
+              数理・統計・機械学習モデル可視化システム
             </h1>
-            <p className="text-xl text-gray-600">
-              パラメータをリアルタイムで調整して挙動を理解しよう
-            </p>
           </header>
 
           {/* エラー表示 */}
