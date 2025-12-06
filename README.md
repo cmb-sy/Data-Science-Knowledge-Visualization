@@ -1,6 +1,7 @@
 # Probability Distribution Visualization System
 
-An interactive web application for visualizing probability distributions and machine learning models. Adjust parameters in real-time and observe how the distribution changes.
+This system is currently under development.
+An interactive web application for visualizing probability distributions and machine learning models. Adjust parameters in real time and observe how the distribution changes.
 
 ## Tech Stack
 
@@ -138,15 +139,6 @@ npm run dev
 ```
 
 Frontend will be available at http://localhost:3000
-
-### Manual Testing
-
-```bash
-# Test backend health
-curl http://localhost:8000/api/v1/health
-
-# List distributions
-curl http://localhost:8000/api/v1/distributions
 
 # Calculate distribution
 curl -X POST http://localhost:8000/api/v1/calculate \
