@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { DistributionData } from "@/types/distribution";
+import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 interface DistributionChartProps {
   data: DistributionData;
@@ -26,6 +27,19 @@ interface DistributionChartProps {
 
 // 描画する最大データポイント数（間引きの基準）
 const MAX_DISPLAY_POINTS = 300;
+
+// テーマカラー定義 (Tailwind colors.emerald, colors.slate等に基づいた値)
+const COLORS = {
+  pdf: "#059669", // emerald-600
+  cdf: "#94a3b8", // slate-400
+  true: "#14b8a6", // teal-500
+  observed: "#6366f1", // indigo-500
+  fitted: "#f43f5e", // rose-500
+  grid: "#e2e8f0", // slate-200
+  axis: "#94a3b8", // slate-400
+  tooltipBg: "#ffffff",
+  tooltipBorder: "#e2e8f0",
+};
 
 function DistributionChartComponent({
   data,
@@ -37,14 +51,12 @@ function DistributionChartComponent({
   // データの変換と間引き処理をメモ化
   const chartData = useMemo(() => {
     const totalPoints = data.x_values.length;
-    
+
     // 間引きステップの計算（最大数を超える場合のみ間引く）
-    // 線グラフの滑らかさを保つため、単純な間引きで良いか検討が必要だが、
-    // 1000点程度なら単純間引きでも概形は崩れない。
-    // ただし、散布図の密度感は変わるが、パフォーマンス優先とする。
-    const step = totalPoints > MAX_DISPLAY_POINTS 
-      ? Math.ceil(totalPoints / MAX_DISPLAY_POINTS) 
-      : 1;
+    const step =
+      totalPoints > MAX_DISPLAY_POINTS
+        ? Math.ceil(totalPoints / MAX_DISPLAY_POINTS)
+        : 1;
 
     const result = [];
     for (let i = 0; i < totalPoints; i++) {
@@ -52,8 +64,12 @@ function DistributionChartComponent({
       if (i % step === 0 || i === totalPoints - 1) {
         result.push({
           x: parseFloat(data.x_values[i].toFixed(4)),
-          pdf: data.pdf_values ? parseFloat(data.pdf_values[i].toFixed(6)) : null,
-          cdf: data.cdf_values ? parseFloat(data.cdf_values[i].toFixed(6)) : null,
+          pdf: data.pdf_values
+            ? parseFloat(data.pdf_values[i].toFixed(6))
+            : null,
+          cdf: data.cdf_values
+            ? parseFloat(data.cdf_values[i].toFixed(6))
+            : null,
           true: data.y_true ? parseFloat(data.y_true[i].toFixed(6)) : null,
           // 観測データ（散布図）も間引く
           observed: data.y_observed
@@ -69,7 +85,7 @@ function DistributionChartComponent({
   }, [data]);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6">
+    <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-soft">
       <ResponsiveContainer width="100%" height={400}>
         <ComposedChart
           data={chartData}
@@ -77,45 +93,53 @@ function DistributionChartComponent({
         >
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="#e5e7eb"
+            stroke={COLORS.grid}
             vertical={false}
           />
           <XAxis
             dataKey="x"
             type="number"
             domain={["auto", "auto"]}
-            stroke="#9ca3af"
-            style={{ fontSize: "12px" }}
+            stroke={COLORS.axis}
+            style={{ fontSize: "12px", fontFamily: "var(--font-mono)" }}
             tickLine={false}
-            axisLine={{ stroke: "#e5e7eb" }}
-            label={{ value: "x", position: "bottom", offset: 0 }}
+            axisLine={{ stroke: COLORS.grid }}
+            tickMargin={10}
+            // label={{ value: "x", position: "bottom", offset: 0 }} // レイアウト崩れを防ぐため削除し、Tooltipで補完
           />
           <YAxis
-            stroke="#9ca3af"
-            style={{ fontSize: "12px" }}
+            stroke={COLORS.axis}
+            style={{ fontSize: "12px", fontFamily: "var(--font-mono)" }}
             tickLine={false}
-            axisLine={{ stroke: "#e5e7eb" }}
+            axisLine={{ stroke: COLORS.grid }}
+            tickMargin={10}
           />
           <Tooltip
-            cursor={{ strokeDasharray: "3 3" }}
+            cursor={{ strokeDasharray: "3 3", stroke: COLORS.axis }}
             contentStyle={{
-              backgroundColor: "white",
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px",
+              backgroundColor: COLORS.tooltipBg,
+              border: `1px solid ${COLORS.tooltipBorder}`,
+              borderRadius: "12px",
               fontSize: "12px",
-              padding: "8px 12px",
+              padding: "12px 16px",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              fontFamily: "var(--font-mono)",
             }}
-            formatter={(value: number | null) =>
-              value !== null ? value.toFixed(6) : "-"
-            }
-            labelStyle={{ color: "#6b7280", marginBottom: "4px" }}
+            formatter={(value: ValueType | null) => {
+              if (typeof value === "number") {
+                return value.toFixed(6);
+              }
+              return "-";
+            }}
+            labelStyle={{ color: COLORS.axis, marginBottom: "8px" }}
           />
           <Legend
             wrapperStyle={{
-              paddingTop: "16px",
+              paddingTop: "20px",
               fontSize: "13px",
+              fontWeight: 500,
             }}
-            iconType="plainline"
+            iconType="circle"
           />
 
           {/* 確率分布用 */}
@@ -123,22 +147,25 @@ function DistributionChartComponent({
             <Line
               type="monotone"
               dataKey="pdf"
-              stroke="#2563eb"
-              strokeWidth={2}
+              stroke={COLORS.pdf}
+              strokeWidth={2.5}
               dot={false}
-              name="PDF"
-              isAnimationActive={false}
+              name="確率密度関数 (PDF)"
+              isAnimationActive={true}
+              animationDuration={1000}
             />
           )}
           {!isRegression && showCDF && (
             <Line
               type="monotone"
               dataKey="cdf"
-              stroke="#64748b"
+              stroke={COLORS.cdf}
               strokeWidth={2}
               dot={false}
-              name="CDF"
-              isAnimationActive={false}
+              name="累積分布関数 (CDF)"
+              isAnimationActive={true}
+              animationDuration={1000}
+              strokeDasharray="4 4"
             />
           )}
 
@@ -149,27 +176,27 @@ function DistributionChartComponent({
               <Line
                 type="monotone"
                 dataKey="true"
-                stroke="#10b981"
+                stroke={COLORS.true}
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
                 name="真のモデル"
                 isAnimationActive={false}
-                opacity={0.7}
+                opacity={0.8}
               />
               <Scatter
                 name="観測データ"
                 dataKey="observed"
-                fill="#2563eb"
+                fill={COLORS.observed}
                 fillOpacity={0.6}
-                // パフォーマンスのためアニメーション無効化
-                isAnimationActive={false} 
+                isAnimationActive={false}
+                r={3} // ドットのサイズを調整
               />
               <Line
                 type="monotone"
                 dataKey="fitted"
-                stroke="#ef4444"
-                strokeWidth={2}
+                stroke={COLORS.fitted}
+                strokeWidth={2.5}
                 dot={false}
                 name="予測モデル"
                 isAnimationActive={false}

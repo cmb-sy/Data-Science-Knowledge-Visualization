@@ -34,33 +34,37 @@ export default function ParameterSlider({
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <label className="text-sm font-medium text-gray-900">
+        <label className="text-sm font-bold text-slate-700">
           {parameter.label}
         </label>
+        <div className="relative">
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+            step={parameter.step}
+            min={parameter.min_value}
+            max={parameter.max_value}
+            className="w-20 px-2 py-1 text-sm text-right font-mono font-medium text-slate-700 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all bg-slate-50"
+          />
+        </div>
+      </div>
+
+      <div className="relative h-4 flex items-center">
         <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-          step={parameter.step}
+          type="range"
           min={parameter.min_value}
           max={parameter.max_value}
-          className="w-20 px-2.5 py-1 text-sm text-right font-mono border border-gray-300 rounded focus:outline-none focus:border-gray-900 transition-colors"
+          step={parameter.step}
+          value={value}
+          onChange={handleChange}
+          onMouseUp={handleMouseUp}
+          onTouchEnd={handleTouchEnd}
+          className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         />
       </div>
 
-      <input
-        type="range"
-        min={parameter.min_value}
-        max={parameter.max_value}
-        step={parameter.step}
-        value={value}
-        onChange={handleChange}
-        onMouseUp={handleMouseUp}
-        onTouchEnd={handleTouchEnd}
-        className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-gray-900"
-      />
-
-      <div className="flex justify-between text-xs text-gray-500 font-mono">
+      <div className="flex justify-between text-xs text-slate-400 font-mono">
         <span>{parameter.min_value}</span>
         <span>{parameter.max_value}</span>
       </div>

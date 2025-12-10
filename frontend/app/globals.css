@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 body {
-  color: #111827;
-  background: #ffffff;
+  color: #0f172a; /* slate-900 */
+  background: #ecfdf5; /* emerald-50 */
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -14,6 +14,7 @@ body {
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
+  padding-bottom: 0.5rem;
 }
 
 /* カスタムスクロールバー */
@@ -23,22 +24,22 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f9fafb;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: #cbd5e1; /* slate-300 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: #94a3b8; /* slate-400 */
 }
 
-/* 選択テキスト */
+/* 選択テキスト - 緑系統に変更 */
 ::selection {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: #d1fae5; /* emerald-100 */
+  color: #065f46; /* emerald-800 */
 }
 
 /* スライドインアニメーション（右から） */
@@ -54,6 +55,41 @@ body {
 }
 
 .animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out;
+  animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1); /* より自然なイージング */
   will-change: transform, opacity;
+}
+
+/* カードのホバーエフェクト用トランジション */
+.card-hover-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* フェードインアニメーション */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* 下からふわっと浮き上がるアニメーション */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
 }

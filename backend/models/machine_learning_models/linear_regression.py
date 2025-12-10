@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Dict
-from .base import (
+from ..base import (
     DistributionInfo,
     DistributionType,
     CategoryType,

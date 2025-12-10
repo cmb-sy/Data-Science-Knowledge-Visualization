@@ -24,7 +24,10 @@ export default function StatisticsDisplay({
   intercept,
   rmse,
 }: StatisticsDisplayProps) {
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined || isNaN(num)) {
+      return "-";
+    }
     return num.toFixed(4);
   };
 
@@ -47,19 +50,35 @@ export default function StatisticsDisplay({
       : [];
 
   return (
-    <div>
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">統計量</h2>
+    <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
+      <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <svg
+          className="w-4 h-4 text-primary-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+        統計量
+      </h2>
       <div className="space-y-3">
         {/* 基本統計量 */}
         {basicStats.map((stat) => (
           <div
             key={stat.symbol}
-            className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+            className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0"
           >
-            <span className="text-sm text-gray-600">
-              {stat.label} <span className="font-mono">({stat.symbol})</span>
+            <span className="text-sm text-slate-600">
+              {stat.label}{" "}
+              <span className="font-mono text-slate-400">({stat.symbol})</span>
             </span>
-            <span className="text-sm font-mono font-semibold text-gray-900">
+            <span className="text-sm font-mono font-medium text-slate-800">
               {formatNumber(stat.value)}
             </span>
           </div>
@@ -68,20 +87,22 @@ export default function StatisticsDisplay({
         {/* 回帰分析用統計量（存在する場合のみ表示） */}
         {regressionStats.length > 0 && (
           <>
-            <div className="pt-2 mt-2 border-t border-gray-200"></div>
-            <h3 className="text-xs font-semibold text-gray-500 mb-2">
+            <div className="pt-2 mt-2 border-t border-slate-100"></div>
+            <h3 className="text-xs font-semibold text-slate-500 mb-2 mt-1">
               モデル評価
             </h3>
             {regressionStats.map((stat) => (
               <div
                 key={stat.symbol}
-                className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0"
               >
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-slate-600">
                   {stat.label}{" "}
-                  <span className="font-mono">({stat.symbol})</span>
+                  <span className="font-mono text-slate-400">
+                    ({stat.symbol})
+                  </span>
                 </span>
-                <span className="text-sm font-mono font-semibold text-gray-900">
+                <span className="text-sm font-mono font-medium text-slate-800">
                   {formatNumber(stat.value)}
                 </span>
               </div>

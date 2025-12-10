@@ -16,7 +16,17 @@ class UniformDistribution:
         return DistributionInfo(
             type=DistributionType.UNIFORM,
             name="一様分布",
-            description="区間 [a, b] 上で等しい確率密度を持つ連続確率分布。全ての値が等確率で出現します。",
+            description="""一様分布は「ある範囲の中では、どの値もまったく同じ確率で出現する」という性質を持つ分布です。
+イメージは「完全に平らな山」です。高さは一定で、どの位置も同じだけ選ばれやすい。
+
+■ 性質
+・連続型なら：区間 [a, b] のどこを選ぶ確率も均等
+・離散型なら：1〜n のどの整数も同じ確率
+
+■ 実は、一様分布は多くの確率論の基礎に使われる理由があります。
+1. 最も何も情報を持たない分布（最大エントロピー分布）
+   区間が決まっていて、期待値や分散など制約がなければ「最も無知（＝公平）」な分布は一様分布になります。
+2. 「乱数の基準」として世界共通""",
             category=CategoryType.CONTINUOUS,
             tags=["基本", "連続", "一様", "等確率"],
             formula_pdf=r"f(x) = \begin{cases} \frac{1}{b-a} & \text{if } a \leq x \leq b \\ 0 & \text{otherwise} \end{cases}",

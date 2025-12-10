@@ -17,7 +17,7 @@ from .base import (
 # 各分布の実装をインポート
 from .uniform import UniformDistribution
 from .exponential import ExponentialDistribution
-from .linear_regression import LinearRegression
+from .machine_learning_models.linear_regression import LinearRegression
 
 
 # 分布のレジストリ
