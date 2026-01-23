@@ -6,7 +6,8 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # ビルダー
 FROM base AS builder
@@ -34,6 +35,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Next.js standaloneモードでは、.next/standaloneに必要なファイルがすべて含まれている
+
 USER nextjs
 
 EXPOSE 3000
@@ -48,7 +51,8 @@ FROM base AS dev
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 COPY . .
 

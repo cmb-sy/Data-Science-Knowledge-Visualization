@@ -1,9 +1,4 @@
-"""
-FastAPI ルート定義
-確率分布の計算とデータ提供API
-"""
-
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from typing import Dict, List
 from pydantic import BaseModel, Field, field_validator
 
@@ -22,8 +17,6 @@ router = APIRouter()
 
 
 class CalculateRequest(BaseModel):
-    """分布計算リクエスト"""
-
     distribution_type: DistributionType = Field(..., description="分布の種類")
     parameters: Dict[str, float] = Field(
         ..., min_length=1, max_length=20, description="パラメータの辞書"

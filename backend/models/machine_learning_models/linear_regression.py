@@ -1,5 +1,9 @@
+"""
+単回帰分析（スクラッチ実装）
+最小二乗法による線形回帰モデル
+"""
+
 import numpy as np
-from typing import Dict
 from ..base import (
     DistributionInfo,
     DistributionType,
@@ -7,15 +11,79 @@ from ..base import (
     DistributionParameter,
     DistributionData,
 )
+from .metrics import evaluate_regression
 
 
 class LinearRegression:
+    """
+    単回帰モデル（スクラッチ実装）
+
+    最小二乗法を用いて y = ax + b の係数を推定する
+    """
+
+    def __init__(self):
+        self.slope: float = 0.0
+        self.intercept: float = 0.0
+        self._is_fitted: bool = False
+
+    def fit(self, x: np.ndarray, y: np.ndarray) -> "LinearRegression":
+        """
+        最小二乗法で回帰係数を推定
+
+        傾き: a = Σ(x - x̄)(y - ȳ) / Σ(x - x̄)²
+        切片: b = ȳ - a * x̄
+
+        Args:
+            x: 説明変数
+            y: 目的変数
+
+        Returns:
+            self（メソッドチェーン用）
+        """
+        n = len(x)
+        if n < 2:
+            self.slope = 0.0
+            self.intercept = 0.0
+            self._is_fitted = True
+            return self
+
+        x_mean = np.mean(x)
+        y_mean = np.mean(y)
+
+        # 傾きの計算: Σ(x - x̄)(y - ȳ) / Σ(x - x̄)²
+        numerator = np.sum((x - x_mean) * (y - y_mean))
+        denominator = np.sum((x - x_mean) ** 2)
+
+        if denominator == 0:
+            self.slope = 0.0
+        else:
+            self.slope = numerator / denominator
+
+        # 切片の計算: ȳ - a * x̄
+        self.intercept = y_mean - self.slope * x_mean
+        self._is_fitted = True
+
+        return self
+
+    def predict(self, x: np.ndarray) -> np.ndarray:
+        """
+        予測値を計算
+
+        Args:
+            x: 説明変数
+
+        Returns:
+            予測値 (y = ax + b)
+        """
+        if not self._is_fitted:
+            raise RuntimeError(
+                "モデルがフィットされていません。fit()を先に呼び出してください。"
+            )
+        return self.slope * x + self.intercept
 
     @staticmethod
     def get_info() -> DistributionInfo:
-        """
-        単回帰モデルの情報を取得
-        """
+        """単回帰モデルの情報を取得"""
         return DistributionInfo(
             type=DistributionType.LINEAR_REGRESSION,
             name="単回帰分析",
@@ -33,7 +101,6 @@ class LinearRegression:
                     max_value=5.0,
                     step=0.1,
                 ),
-                # intercept は固定のため削除
                 DistributionParameter(
                     name="noise_std",
                     label="ノイズ (σ)",
@@ -60,33 +127,22 @@ class LinearRegression:
         slope: float,
         noise_std: float,
         pattern_id: float,
-        intercept: float = 0.0, # API互換性のため残すが、パラメータからは渡されない
+        intercept: float = 0.0,
         num_points: int = 100,
     ) -> DistributionData:
-        """
-        単回帰データの生成とフィッティング
-        """
+        """単回帰データの生成とフィッティング"""
         n_samples = num_points
         pattern_id = int(pattern_id)
-        
-        # 切片は0に固定（パラメータから削除されたため）
-        # もしAPIから渡されても、明示的に上書きするか、デフォルト値を使う
-        # ここではパラメータ定義にないので request.parameters には含まれないはず。
-        # calculate_distribution で .get("intercept", 0.0) しているので、それが渡ってくる。
-        # ユーザー要望により操作不要とのことなので、常に0でも良いが、
-        # 互換性のため引数は受け取りつつ、意図的に無視するか、デフォルト値を使う。
-        # 今回は "切片の操作はいらない" なので、常に0とみなすのが自然。
-        intercept = 0.0
+        intercept = 0.0  # 切片は0に固定
 
-        # Xデータの生成 (-5 から 5 の範囲でランダム)
-        np.random.seed(42)  # 再現性のためシード固定
+        # データ生成
+        np.random.seed(42)
         x = np.random.uniform(-5, 5, n_samples)
         x.sort()
 
-        # ノイズ生成
         noise = np.random.normal(0, noise_std, n_samples)
 
-        # Yデータの生成
+        # パターン別のデータ生成
         if pattern_id == 0:  # 線形
             y_true = slope * x + intercept
             y_observed = y_true + noise
@@ -106,46 +162,26 @@ class LinearRegression:
             y_true = slope * x + intercept
             y_observed = y_true + noise
 
-        # 単回帰分析 (最小二乗法)
-        r_squared = 0.0
-        slope_hat = 0.0
-        intercept_hat = 0.0
-        rmse = 0.0
+        # モデルのフィッティング（スクラッチ実装を使用）
+        model = LinearRegression()
+        model.fit(x, y_observed)
+        y_fitted = model.predict(x)
 
-        if n_samples > 1:
-            # 係数の推定
-            slope_hat, intercept_hat = np.polyfit(x, y_observed, 1)
-            y_fitted = slope_hat * x + intercept_hat
-            
-            # 決定係数 (R^2) の計算
-            y_mean = np.mean(y_observed)
-            ss_tot = np.sum((y_observed - y_mean) ** 2)
-            ss_res = np.sum((y_observed - y_fitted) ** 2)
-            r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
-            
-            # RMSE の計算
-            rmse = np.sqrt(np.mean((y_observed - y_fitted) ** 2))
-        else:
-            y_fitted = np.zeros_like(x)
-
-        mean_y = float(np.mean(y_observed))
-        var_y = float(np.var(y_observed))
-        std_y = float(np.std(y_observed))
+        # 評価指標の計算（別ファイルの関数を使用）
+        metrics = evaluate_regression(y_observed, y_fitted)
 
         return DistributionData(
             x_values=x.tolist(),
             y_true=y_true.tolist(),
             y_observed=y_observed.tolist(),
             y_fitted=y_fitted.tolist(),
-            mean=mean_y,
-            variance=var_y,
-            std_dev=std_y,
-            # 評価指標
-            r_squared=float(r_squared),
-            slope_estimated=float(slope_hat),
-            intercept_estimated=float(intercept_hat),
-            rmse=float(rmse),
-            # 互換性のため
+            mean=float(np.mean(y_observed)),
+            variance=float(np.var(y_observed)),
+            std_dev=float(np.std(y_observed)),
+            r_squared=metrics.r_squared,
+            slope_estimated=float(model.slope),
+            intercept_estimated=float(model.intercept),
+            rmse=metrics.rmse,
             pdf_values=None,
             cdf_values=None,
         )
