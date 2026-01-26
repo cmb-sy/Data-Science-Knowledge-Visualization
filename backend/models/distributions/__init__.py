@@ -17,14 +17,30 @@ from .base import (
 # 各分布の実装をインポート
 from .uniform import UniformDistribution
 from .exponential import ExponentialDistribution
-from .machine_learning_models.linear_regression import LinearRegression
+from ..machine_learning_models.linear_regression import (
+    LinearRegression,
+    get_info as linear_regression_get_info,
+    calculate as linear_regression_calculate,
+)
+
+
+class LinearRegressionWrapper:
+    """LinearRegressionモジュールのラッパークラス（レジストリ互換用）"""
+
+    @staticmethod
+    def get_info() -> DistributionInfo:
+        return linear_regression_get_info()
+
+    @staticmethod
+    def calculate(**kwargs) -> DistributionData:
+        return linear_regression_calculate(**kwargs)
 
 
 # 分布のレジストリ
 DISTRIBUTION_REGISTRY: Dict[DistributionType, Any] = {
     DistributionType.UNIFORM: UniformDistribution,
     DistributionType.EXPONENTIAL: ExponentialDistribution,
-    DistributionType.LINEAR_REGRESSION: LinearRegression,
+    DistributionType.LINEAR_REGRESSION: LinearRegressionWrapper,
 }
 
 
