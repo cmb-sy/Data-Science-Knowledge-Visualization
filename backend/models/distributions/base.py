@@ -157,6 +157,8 @@ class DistributionData(BaseModel):
     slope_estimated: Optional[float] = Field(None, description="推定された傾き")
     intercept_estimated: Optional[float] = Field(None, description="推定された切片")
     rmse: Optional[float] = Field(None, description="二乗平均平方根誤差 (RMSE)")
+    mse: Optional[float] = Field(None, description="平均二乗誤差 (MSE)")
+    mae: Optional[float] = Field(None, description="平均絶対誤差 (MAE)")
 
     mean: float = Field(..., description="平均（回帰の場合はYの平均）")
     variance: float = Field(..., ge=0, description="分散（回帰の場合はYの分散）")

@@ -54,7 +54,9 @@ export interface DistributionData {
   slope_estimated?: number;
   intercept_estimated?: number;
   rmse?: number;
-  
+  mse?: number;
+  mae?: number;
+
   mean: number;
   variance: number;
   std_dev: number;

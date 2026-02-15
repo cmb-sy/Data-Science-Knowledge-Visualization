@@ -130,6 +130,8 @@ def calculate(
         slope_estimated=float(model.slope),
         intercept_estimated=float(model.intercept),
         rmse=metrics.rmse,
+        mse=metrics.mse,
+        mae=metrics.mae,
         pdf_values=None,
         cdf_values=None,
     )
