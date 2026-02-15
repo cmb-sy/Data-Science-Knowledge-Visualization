@@ -50,23 +50,23 @@ cd ..
 echo "✨ フロントエンドを起動中... (http://localhost:3000)"
 cd frontend
 
-if ! command -v npm &> /dev/null; then
-    echo "npm がインストールされていません"
-    echo "Node.jsをインストールしてください: https://nodejs.org/"
+if ! command -v pnpm &> /dev/null; then
+    echo "pnpm がインストールされていません"
+    echo "インストール: https://pnpm.io/installation"
     cd ..
     exit 1
 fi
 
 if [ ! -d "node_modules" ]; then
     echo "依存パッケージをインストール中..."
-    npm install || { echo "依存パッケージのインストールに失敗"; cd ..; exit 1; }
+    pnpm install || { echo "依存パッケージのインストールに失敗"; cd ..; exit 1; }
 fi
 
 if [ ! -f ".env.local" ]; then
     echo "NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1" > .env.local
 fi
 
-npm run dev &
+pnpm run dev &
 FRONTEND_PID=$!
 
 sleep 4
