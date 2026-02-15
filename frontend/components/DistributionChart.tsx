@@ -86,7 +86,7 @@ function DistributionChartComponent({
 
   return (
     <div className="bg-white border border-slate-100 rounded-xl p-6 shadow-soft">
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={480}>
         <ComposedChart
           data={chartData}
           margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
@@ -125,13 +125,14 @@ function DistributionChartComponent({
               boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
               fontFamily: "var(--font-mono)",
             }}
-            formatter={(value: ValueType | null) => {
+            formatter={(value: ValueType | null, name: string) => {
               if (typeof value === "number") {
-                return value.toFixed(6);
+                return [value.toFixed(6), name];
               }
-              return "-";
+              return ["-", name];
             }}
-            labelStyle={{ color: COLORS.axis, marginBottom: "8px" }}
+            labelFormatter={(label: number) => `x = ${typeof label === "number" ? label.toFixed(4) : label}`}
+            labelStyle={{ color: "#334155", marginBottom: "8px", fontWeight: 600 }}
           />
           <Legend
             wrapperStyle={{
@@ -152,7 +153,8 @@ function DistributionChartComponent({
               dot={false}
               name="確率密度関数 (PDF)"
               isAnimationActive={true}
-              animationDuration={1000}
+              animationDuration={800}
+              animationEasing="ease-in-out"
             />
           )}
           {!isRegression && showCDF && (
@@ -164,7 +166,8 @@ function DistributionChartComponent({
               dot={false}
               name="累積分布関数 (CDF)"
               isAnimationActive={true}
-              animationDuration={1000}
+              animationDuration={800}
+              animationEasing="ease-in-out"
               strokeDasharray="4 4"
             />
           )}

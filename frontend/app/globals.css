@@ -17,6 +17,17 @@ body {
   padding-bottom: 0.5rem;
 }
 
+/* KaTeX 数式のレスポンシブ対応 */
+.katex-display > .katex {
+  white-space: normal;
+}
+
+.katex-display > .katex > .katex-html {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* カスタムスクロールバー */
 ::-webkit-scrollbar {
   width: 8px;
