@@ -1,22 +1,9 @@
-"""
-線形回帰モデル（スクラッチ実装）
-
-最小二乗法を用いて y = ax + b の係数を推定する
-3つの方法で実装: 解析解、行列計算、最急降下法
-"""
-
-import numpy as np
 import torch
+import numpy as np
+
 from typing import Literal, Tuple
 
-
 class LinearRegression:
-    """
-    単回帰モデル（スクラッチ実装）
-
-    最小二乗法を用いて y = ax + b の係数を推定する
-    3つの方法で実装: 解析解、行列計算、最急降下法
-    """
 
     def __init__(self):
         self.slope: float = 0.0
@@ -32,22 +19,6 @@ class LinearRegression:
         lr: float = 0.01,
         epochs: int = 1000,
     ) -> "LinearRegression":
-        """
-        回帰係数を推定
-
-        Args:
-            x: 説明変数
-            y: 目的変数
-            method: 推定方法
-                - "analytical": 解析解（公式）
-                - "matrix": 行列計算（正規方程式）
-                - "gradient_descent": 最急降下法（PyTorch）
-            lr: 学習率（gradient_descentの場合のみ）
-            epochs: エポック数（gradient_descentの場合のみ）
-
-        Returns:
-            self（メソッドチェーン用）
-        """
         self._method = method
 
         if len(x) < 2:

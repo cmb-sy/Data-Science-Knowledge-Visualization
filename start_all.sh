@@ -4,7 +4,9 @@ cleanup() {
     echo ""
     echo "シャットダウン中..."
     kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    [ -n "${BROWSER_PID:-}" ] && kill $BROWSER_PID 2>/dev/null || true
     wait $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    [ -n "${BROWSER_PID:-}" ] && wait $BROWSER_PID 2>/dev/null || true
     echo "シャットダウン完了"
     exit 0
 }
@@ -76,9 +78,13 @@ if ! kill -0 $FRONTEND_PID 2>/dev/null; then
     exit 1
 fi
 
+echo "agent-browser で http://localhost:3000 を開いています..."
+pnpm exec agent-browser open http://localhost:3000 &
+BROWSER_PID=$!
+
 cd ..
 
-echo "   - フロントエンド: http://localhost:3000"
+echo "   - フロントエンド: http://localhost:3000 (agent-browser で起動中)"
 echo "   - バックエンドAPI: http://localhost:8000"
 echo "   - API ドキュメント: http://localhost:8000/docs"
 

@@ -96,39 +96,6 @@ export default function Home() {
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
-                Data Science
-                <span className="block text-emerald-400">Knowledge Visualization</span>
-              </h1>
-              <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-                確率分布と機械学習モデルをインタラクティブに可視化。
-                パラメータをリアルタイムに操作しながら、数理モデルの挙動を直感的に理解できます。
-              </p>
-              <div className="flex items-center justify-center gap-6 text-sm">
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white">
-                  <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4" />
-                  </svg>
-                  <span className="font-semibold">{distCount}</span>
-                  <span className="text-slate-300">確率分布</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white">
-                  <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  <span className="font-semibold">{mlCount}</span>
-                  <span className="text-slate-300">MLモデル</span>
-                </div>
-              </div>
-            </motion.div>
-          </div>
         </div>
 
         {/* ヘッダー: 検索 + カテゴリタブ */}

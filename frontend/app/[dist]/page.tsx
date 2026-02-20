@@ -170,6 +170,7 @@ export default function DistributionPage({ params }: PageProps) {
                 {distributionData ? (
                   <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 h-full">
                     <DistributionChart data={distributionData} />
+                    <ChartExplanation isMachineLearning={isMachineLearning} />
                   </div>
                 ) : (
                   <SkeletonChart />
@@ -183,17 +184,6 @@ export default function DistributionPage({ params }: PageProps) {
               </div>
             </div>
           </motion.div>
-
-          {/* グラフの説明 */}
-          {distributionData && (
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <ChartExplanation isMachineLearning={isMachineLearning} />
-            </motion.div>
-          )}
         </div>
 
         {/* モバイル: パラメータドロワー */}

@@ -1,11 +1,3 @@
-"""
-線形回帰モデル - フロントエンド連携用
-
-このファイルはフロントエンドとの連携に必要な機能を集約しています:
-- get_info(): モデル情報の取得
-- calculate(): データ生成とフィッティング
-"""
-
 import numpy as np
 from ...distributions.base import (
     DistributionInfo,
@@ -110,7 +102,7 @@ def calculate(
         y_true = slope * x + intercept
         y_observed = y_true + noise
 
-    # モデルのフィッティング（解析解を使用 - フロントエンド連携用）
+    # モデルのフィッティング
     model = LinearRegression()
     model.fit(x, y_observed, method="analytical")
     y_fitted = model.predict(x)
